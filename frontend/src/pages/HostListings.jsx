@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axiosClient from '../api/axiosClient';
 import { useAuth } from '../context/AuthContext';
 import ListingCard from '../components/ListingCard';
@@ -10,72 +10,64 @@ function HostListings() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [actionError, setActionError] = useState(null);
-
-  const fetchListings = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await axiosClient.get('/api/listings');
-      const all = res.data || [];
-      const mine = user ? all.filter((l) => l.ownerId === user.id || l.ownerId === user._id) : [];
-      setItems(mine);
-    } catch (err) {
-      const msg = err.response?.data?.message || 'Failed to load listings';
-      setError(msg);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
-    fetchListings();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const deleteListing = async (id) => {
-    try {
-      setActionError(null);
-      await axiosClient.delete(`/api/listings/${id}`);
-      setItems((prev) => prev.filter((l) => l._id !== id));
-    } catch (err) {
-      const msg = err.response?.data?.message || 'Failed to delete listing';
-      setActionError(msg);
-    }
-  };
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await axiosClient.get('/api/listings');
+        const all = res.data || [];
+        const mine = user ? all.filter((l) => l.ownerId === user.id) : [];
+        setItems(mine);
+      } catch (err) {
+        const msg = err.response?.data?.message || 'Failed to load listings';
+        setError(msg);
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [user]);
 
   return (
     <div className="page">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2>My Listings</h2>
-        <button type="button" onClick={() => navigate('/host/listings/new')}>
-          Add Listing
-        </button>
+        <h2 style={{ margin: 0 }}>My Listings</h2>
+        <Link to="/host/listings/new" className="btn-primary">New Listing</Link>
       </div>
-
-      {loading && <div className="muted">Loading...</div>}
-      {error && <div className="error">{error}</div>}
-      {actionError && <div className="error">{actionError}</div>}
-      {!loading && !items.length && <div className="muted">No listings yet</div>}
-
-      <div className="grid" style={{ marginTop: '12px' }}>
-        {items.map((item) => (
-          <div key={item._id} className="card">
-            <ListingCard {...item} />
-            <div style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
-              <button type="button" onClick={() => navigate(`/host/listings/${item._id}/edit`)}>
-                Edit
-              </button>
-              <button type="button" onClick={() => deleteListing(item._id)}>
-                Delete
-              </button>
+      {error && <div className="error" style={{ marginTop: 12 }}>{error}</div>}
+      {loading && (
+        <div className="muted" style={{ textAlign: 'center', padding: '40px' }}>
+          Loading...
+        </div>
+      )}
+      {!loading && items.length > 0 && (
+        <div className="grid" style={{ marginTop: 16 }}>
+          {items.map((item) => (
+            <div key={item._id}>
+              <div onClick={() => navigate(`/listings/${item._id}`)}>
+                <ListingCard {...item} />
+              </div>
+              <div style={{ marginTop: 8 }}>
+                <Link to={`/host/listings/${item._id}/edit`} className="link-button">Edit</Link>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
+      {!loading && !items.length && (
+        <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+          <div style={{ fontSize: '64px', marginBottom: '16px' }}>📄</div>
+          <h3 style={{ marginBottom: '8px' }}>You have no listings yet</h3>
+          <p className="muted" style={{ marginBottom: '16px' }}>
+            Create your first listing to start hosting
+          </p>
+          <Link to="/host/listings/new" className="btn-primary">Create Listing</Link>
+        </div>
+      )}
     </div>
   );
 }
 
 export default HostListings;
-

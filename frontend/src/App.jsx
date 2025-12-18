@@ -10,6 +10,7 @@ import MyBookings from './pages/MyBookings.jsx';
 import HostListings from './pages/HostListings.jsx';
 import HostListingNew from './pages/HostListingNew.jsx';
 import HostListingEdit from './pages/HostListingEdit.jsx';
+import Profile from './pages/Profile.jsx';
 
 function App() {
   return (
@@ -30,9 +31,17 @@ function App() {
           }
         />
         <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/host/listings"
           element={
-            <ProtectedRoute allowedRoles={['host']}>
+            <ProtectedRoute>
               <HostListings />
             </ProtectedRoute>
           }
@@ -40,7 +49,7 @@ function App() {
         <Route
           path="/host/listings/new"
           element={
-            <ProtectedRoute allowedRoles={['host']}>
+            <ProtectedRoute>
               <HostListingNew />
             </ProtectedRoute>
           }
@@ -48,7 +57,7 @@ function App() {
         <Route
           path="/host/listings/:id/edit"
           element={
-            <ProtectedRoute allowedRoles={['host']}>
+            <ProtectedRoute>
               <HostListingEdit />
             </ProtectedRoute>
           }

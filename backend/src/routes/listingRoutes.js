@@ -6,15 +6,12 @@ const { getDistanceInKm } = require('../utils/distance');
 
 const router = express.Router();
 
-function hostOnly(req, res, next) {
-  if (req.user?.role !== 'host') {
-    return res.status(403).json({ message: 'Only hosts can manage listings' });
-  }
-  return next();
+function escapeRegex(input) {
+  return String(input).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 // POST /api/listings (protected – hosts only)
-router.post('/', authRequired, hostOnly, async (req, res) => {
+router.post('/', authRequired, async (req, res) => {
   try {
     const {
       type,
@@ -27,6 +24,8 @@ router.post('/', authRequired, hostOnly, async (req, res) => {
       amenities,
       images,
       location,
+      openingTime,
+      closingTime,
     } = req.body;
 
     if (!type || !title || !city) {
@@ -36,6 +35,12 @@ router.post('/', authRequired, hostOnly, async (req, res) => {
     const stayTypes = ['room', 'rent_home'];
     if (stayTypes.includes(type) && (pricePerNight === undefined || pricePerNight === null)) {
       return res.status(400).json({ message: 'pricePerNight is required for room or rent_home' });
+    }
+
+    if (type === 'cafe') {
+      if (!openingTime || !closingTime) {
+        return res.status(400).json({ message: 'openingTime and closingTime are required for cafe' });
+      }
     }
 
     const listing = await Listing.create({
@@ -49,6 +54,8 @@ router.post('/', authRequired, hostOnly, async (req, res) => {
       maxGuests,
       amenities,
       images,
+      openingTime,
+      closingTime,
       location: location
         ? {
             lat: location.lat,
@@ -142,6 +149,18 @@ router.get('/recommendations', async (req, res) => {
   }
 });
 
+// GET /api/listings/cities (public – unique city list)
+router.get('/cities', async (req, res) => {
+  try {
+    const cities = await Listing.distinct('city');
+    const sorted = (cities || []).filter(Boolean).sort((a, b) => a.localeCompare(b));
+    return res.json(sorted);
+  } catch (error) {
+    console.error('List cities error:', error.message);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 // GET /api/listings (public – list all)
 router.get('/', async (req, res) => {
   try {
@@ -149,9 +168,7 @@ router.get('/', async (req, res) => {
 
     const filter = {};
 
-    if (city) {
-      filter.city = city;
-    }
+    // City search handled after query to support case-insensitive partial matches
 
     if (type) {
       filter.type = type;
@@ -184,7 +201,11 @@ router.get('/', async (req, res) => {
     }
 
     const listings = await Listing.find(filter).sort({ createdAt: -1 });
-    return res.json(listings);
+    const cityTerm = city ? String(city).toLowerCase() : '';
+    const result = cityTerm
+      ? listings.filter((l) => String(l.city || '').toLowerCase().includes(cityTerm))
+      : listings;
+    return res.json(result);
   } catch (error) {
     console.error('List listings error:', error.message);
     return res.status(500).json({ message: 'Internal server error' });
@@ -212,7 +233,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // PUT /api/listings/:id (protected – host only)
-router.put('/:id', authRequired, hostOnly, async (req, res) => {
+router.put('/:id', authRequired, async (req, res) => {
   try {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -238,6 +259,8 @@ router.put('/:id', authRequired, hostOnly, async (req, res) => {
       'amenities',
       'images',
       'location',
+      'openingTime',
+      'closingTime',
     ];
 
     updatableFields.forEach((field) => {
@@ -255,7 +278,7 @@ router.put('/:id', authRequired, hostOnly, async (req, res) => {
 });
 
 // DELETE /api/listings/:id (protected – host only)
-router.delete('/:id', authRequired, hostOnly, async (req, res) => {
+router.delete('/:id', authRequired, async (req, res) => {
   try {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {

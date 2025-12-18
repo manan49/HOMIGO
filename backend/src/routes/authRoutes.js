@@ -13,7 +13,7 @@ router.post('/register', async (req, res) => {
       return res.status(400).json({ message: 'Name, email, and password are required' });
     }
 
-    const normalizedRole = role && ['guest', 'host'].includes(role) ? role : 'guest';
+    const normalizedRole = 'guest';
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
@@ -90,4 +90,3 @@ router.post('/login', async (req, res) => {
 });
 
 module.exports = router;
-

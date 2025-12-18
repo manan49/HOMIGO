@@ -26,11 +26,7 @@ function Login() {
         throw new Error('Invalid response from server');
       }
       login(user, token);
-      if (user.role === 'host') {
-        navigate('/host/listings', { replace: true });
-      } else {
-        navigate('/', { replace: true });
-      }
+      navigate('/', { replace: true });
     } catch (err) {
       const msg = err.response?.data?.message || 'Invalid credentials';
       setError(msg);

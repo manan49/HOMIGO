@@ -55,15 +55,34 @@ router.post('/', authRequired, async (req, res) => {
       return res.status(400).json({ message: 'Listing is missing pricePerNight' });
     }
 
-    const overlapping = await Booking.findOne({
+    const PENDING_EXPIRES_MINUTES = 30;
+    const pendingCutoff = new Date(Date.now() - PENDING_EXPIRES_MINUTES * 60 * 1000);
+
+    const overlappingBookings = await Booking.find({
       listingId,
-      status: { $in: ['PENDING', 'CONFIRMED'] },
       checkInDate: { $lt: checkOut },
       checkOutDate: { $gt: checkIn },
     });
 
-    if (overlapping) {
+    const hasActiveOverlap = overlappingBookings.some((b) => {
+      if (b.status === 'CONFIRMED') return true;
+      if (b.status === 'PENDING' && b.createdAt >= pendingCutoff) return true;
+      return false;
+    });
+
+    if (hasActiveOverlap) {
       return res.status(400).json({ message: 'Listing is not available for the selected dates' });
+    }
+
+    // Optional: clean up stale pending overlaps (auto-cancel)
+    const stalePendingIds = overlappingBookings
+      .filter((b) => b.status === 'PENDING' && b.createdAt < pendingCutoff)
+      .map((b) => b._id);
+    if (stalePendingIds.length) {
+      await Booking.updateMany(
+        { _id: { $in: stalePendingIds } },
+        { $set: { status: 'CANCELLED' } }
+      );
     }
 
     const totalAmount = nights * listing.pricePerNight;
@@ -101,10 +120,6 @@ router.get('/my', authRequired, async (req, res) => {
 // GET /api/bookings/listing/:listingId → bookings for one listing (host only)
 router.get('/listing/:listingId', authRequired, async (req, res) => {
   try {
-    if (req.user.role !== 'host') {
-      return res.status(403).json({ error: 'Not allowed' });
-    }
-
     const { listingId } = req.params;
     if (!mongoose.Types.ObjectId.isValid(listingId)) {
       return res.status(400).json({ message: 'Invalid listingId' });

@@ -8,7 +8,6 @@ function Register() {
     name: '',
     email: '',
     password: '',
-    role: 'guest',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -40,7 +39,7 @@ function Register() {
     <div className="page auth-page">
       <div className="auth-card">
         <h2>Create your account</h2>
-        <p className="muted">Join HomiGo as a guest or host.</p>
+        <p className="muted">Join HomiGo.</p>
         <form className="form" onSubmit={handleSubmit}>
           <label>
             Name
@@ -54,13 +53,7 @@ function Register() {
             Password
             <input type="password" name="password" value={form.password} onChange={handleChange} required />
           </label>
-          <label>
-            Role
-            <select name="role" value={form.role} onChange={handleChange}>
-              <option value="guest">guest</option>
-              <option value="host">host</option>
-            </select>
-          </label>
+          
           <button type="submit" disabled={loading}>
             {loading ? 'Registering...' : 'Register'}
           </button>
