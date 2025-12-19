@@ -3,7 +3,7 @@
 
 ---
 
-#⭐ Features
+# ⭐ Features
 
  ## 👤 User Features
  
@@ -21,23 +21,23 @@
 
 ---
 
-#🛠️ Tech Stack
+# 🛠️ Tech Stack
 
-##Frontend
+## Frontend
 
 React.js
 Tailwind CSS
 JavaScript
 Axios
 
-##Backend
+## Backend
 
 Node.js
 Express.js
 MongoDB
 JWT Authentication
 
-##Others
+## Others
 
 Git & GitHub
 REST APIs
