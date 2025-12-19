@@ -7,7 +7,7 @@
 
  ## 👤 User Features
  
-  1) Login & Signup (JWT Authentication)
+  1)Login & Signup (JWT Authentication)
      
   2)Browse all listings
   
