@@ -17,4 +17,10 @@
   
   5)Manage bookings (optional)
 
+## 🎨 UI/UX
+
+1) Clean and modern UI
+2) Responsive design (mobile-friendly)
+3) Easy navigation & smooth user experience
+
   
