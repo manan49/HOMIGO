@@ -25,19 +25,19 @@
 
 ## Frontend
 
-React.js
-Tailwind CSS
-JavaScript
-Axios
+React.js,Tailwind CSS,JavaScript
 
 ## Backend
 
-Node.js
-Express.js
-MongoDB
-JWT Authentication
+Node.js,Express.js,MongoDB,JWT Authentication
 
 ## Others
 
-Git & GitHub
-REST APIs
+Git & GitHub,REST APIs
+
+---
+
+# 📸 Screenshots
+
+<img width="1855" height="859" alt="image" src="https://github.com/user-attachments/assets/9184b256-c268-4dd0-8d7d-4cb704147a86" />
+
